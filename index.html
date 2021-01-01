@@ -2,44 +2,73 @@
 
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+    <meta charset="utf-8">
 
-  <title>Hill Finder</title>
-  <meta name="description" content="Find hills anywhere in the world.">
-  <meta name="author" content="Ryan Alexander">
+    <title>Hill Finder</title>
+    <meta name="description" content="Find hills anywhere in the world.">
+    <meta name="author" content="Ryan Alexander">
 
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js"></script> <!-- map -->
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js"></script> <!-- map -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css" rel="stylesheet" />
 
-  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script> <!-- geocoder -->
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css" type="text/css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script> <!-- geocoder -->
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css" type="text/css" />
 
-  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.0/mapbox-gl-draw.js"></script> <!-- polygon drawer -->
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.0/mapbox-gl-draw.css" type="text/css"/>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.0/mapbox-gl-draw.js"></script> <!-- polygon drawer -->
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.0/mapbox-gl-draw.css" type="text/css"/>
   
-  <style type="text/css">
-    html, body {
-        height: 100%;
-        margin: 0;
-    }
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+        }
 
-    #map {
-        min-height: 100%; 
-    }
-</style>
+	    #map {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 100%;
+        }
+
+        #menu {
+            position: absolute;
+            background: #fff;
+            padding: 10px;
+            font-family: 'Open Sans', sans-serif;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="map"></div>
+    <div id="map"></div> <!-- map -->
+    <div id="menu"> <!-- style picker -->
+        <input id="streets-v11" type="radio" name="rtoggle" value="streets" />
+        <label for="streets-v11">Streets</label>
+        <input id="outdoors-v11" type="radio" name="rtoggle" value="outdoors" checked="checked"/>
+        <label for="outdoors-v11">Outdoors</label>
+        <input id="satellite-v9" type="radio" name="rtoggle" value="satellite" />
+        <label for="satellite-v9">Satellite</label>
+    </div>
 
     <script>
         mapboxgl.accessToken = "pk.eyJ1IjoiZHluYW1pY2R1Y2siLCJhIjoiY2tpeHNjemV1M3U4NzJxbGJ3cHdudmJneiJ9.WiaSu7K-1gCvipLv-BR3pA"; // public API key
         var map = new mapboxgl.Map({
         container: "map",
-        style: "mapbox://styles/dynamicduck/ckixuhrtl43zv19mqoqp1790o", // stylesheet location
+        style: "mapbox://styles/mapbox/outdoors-v11", // stylesheet location
         center: [0, 51.4769], // starting position [lat, lng]
-        zoom: 14 // starting zoom
+        zoom: 14
         });
+
+        var layerList = document.getElementById('menu');
+        var inputs = layerList.getElementsByTagName('input');
+
+        function switchLayer(layer) {
+            var layerId = layer.target.id;
+            map.setStyle('mapbox://styles/mapbox/' + layerId);
+        }
+ 
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].onclick = switchLayer;
+        }
         
         map.addControl( // geocoder
         new MapboxGeocoder({
@@ -53,13 +82,10 @@
         trash: true}});
         map.addControl(draw);
 
-        map.on('draw.create', get_coords); // update coordinate getter
-        map.on('draw.delete', get_coords);
-        map.on('draw.update', get_coords);
-
-        function get_coords() {
+        function get_geom() { // outputs tiles that cover polygons
             var data = draw.getAll();
-            return data
+            geom = data["features"]["0"]["geometry"] // needs changing to support multiple polygons
+
         }
     </script>
 </body>
